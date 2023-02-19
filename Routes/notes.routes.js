@@ -1,55 +1,70 @@
 const express = require("express");
-const { noteModel } = require("../Model/notes.model");
+const { noteModel } = require("../model/note.model");
+
 const noteRouter = express.Router();
 
 noteRouter.get("/", async (req, res) => {
-  const notes = await noteModel.find();
-  res.send(notes);
+  try {
+    const note = await noteModel.find();
+    res.send(note);
+  } catch (err) {
+    res.send({
+      msg: "something went wrong while getting notes",
+      err: err.message,
+    });
+  }
 });
 
 noteRouter.post("/create", async (req, res) => {
-  const data = req.body;
+  const payload = req.body;
   try {
-    const note = new noteModel(data);
+    const note = new noteModel(payload);
     await note.save();
-    res.send({ msg: "Notes created successfully" });
+    res.send("note is created");
   } catch (err) {
-    res.send({ msg: "notes not created" });
+    res.send({ msg: "Note is not created", err: err.message });
   }
 });
 
-noteRouter.patch("/update/:id", async (req, res) => {
-  const ID = req.params.id;
-  const updateddata = req.body;
-  const note = await noteModel.findOne({ _id: ID });
-  const userid_in_note = note.userID;
-  const userid_making_req = req.body.userID;
+noteRouter.patch("/:id", async (req, res) => {
+  const id = req.params.id;
+  const payload = req.body;
+  const note = await noteModel.findOne({ _id: id });
+  const userID_in_note = note.userID;
+  const userID_making_req = req.body.userID;
   try {
-    if (userid_making_req !== userid_in_note) {
-      res.send({ msg: "you are not authorized" });
+    if (userID_making_req !== userID_in_note) {
+      res.send({
+        msg: "you are not authorised to update this note",
+        err: err.message,
+      });
     } else {
-      await noteModel.findByIdAndUpdate({ _id: ID }, updateddata);
-      res.send({ msg: "updated the note" });
+      await noteModel.findByIdAndUpdate({ _id: id }, payload);
+      res.send({ msg: "Note has been updated" });
     }
   } catch (err) {
-    res.send({ msg: "cannot modify", error: err.message });
+    res.send({ msg: "Something went wrong", err: err.message });
   }
 });
 
-noteRouter.delete("/delete/:id", async (req, res) => {
-  const ID = req.params.id;
-  const note = await noteModel.findOne({ _id: ID });
-  const userid_note = note.userID;
-  const useridMakingReq = req.body.userID;
+noteRouter.delete("/:id", async (req, res) => {
+  const id = req.params.id;
+  const note = await noteModel.findOne({ _id: id });
+  const userID_in_note = note.userID;
+  const userID_making_req = req.body.userID;
   try {
-    if (useridMakingReq !== userid_note) {
-      res.send({ msg: "you are not authorized" });
+    if (userID_making_req !== userID_in_note) {
+      res.send({
+        msg: "You are not authorised to delete this note",
+        err: err.message,
+      });
     } else {
-      await noteModel.findByIdAndDelete({ _id: ID });
-      res.send({ msg: "Deleted note" });
+      await noteModel.findByIdAndDelete({ _id: id });
+      res.send({ msg: "Note has been deleted" });
     }
   } catch (err) {
-    res.send({ msg: "cannot delete", error: err.message });
+    console.log(err);
+    res.send({ msg: "Something went wrong", err: err.message });
   }
 });
 
