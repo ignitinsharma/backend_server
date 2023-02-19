@@ -1,6 +1,6 @@
 const express = require("express");
-const { connect } = require("./db");
-const { authenticate } = require("./middleware/authenticate.middleware");
+const { connect } = require("./Config/db");
+const { authenticate } = require("./Middleware/auth.middlware");
 
 require("dotenv").config();
 const server = express();
@@ -9,6 +9,9 @@ const { userRouter } = require("./Routes/users.routes");
 const { noteRouter } = require("./Routes/notes.routes");
 server.use(cors());
 
+server.use("/", (req, res) => {
+  res.send("Home page");
+});
 server.use(express.json());
 server.use("/user", userRouter);
 server.use(authenticate);
